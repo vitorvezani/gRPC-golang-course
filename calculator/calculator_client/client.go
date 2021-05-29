@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"time"
 
 	"github.com/vvezani/grpc-go-course/calculator/calculatorpb"
 	"google.golang.org/grpc"
@@ -21,8 +22,44 @@ func main() {
 
 	c := calculatorpb.NewCalculatorServiceClient(cc)
 
-	doUnary(c)
-	doStream(c)
+	// doUnary(c)
+	// doStream(c)
+	doClientStream(c)
+}
+
+func doClientStream(c calculatorpb.CalculatorServiceClient) {
+	fmt.Println("Doing Client Streaming Greet RPC")
+
+	stream, err := c.ComputeAverage(context.Background())
+	if err != nil {
+		log.Fatalf("Error while calling LongGreet RPC: %v", err)
+	}
+
+	requests := []*calculatorpb.ComputeAverageRequest{
+		{
+			Number: 5,
+		},
+		{
+			Number: 15,
+		},
+		{
+			Number: 25,
+		},
+		{
+			Number: 35,
+		},
+	}
+
+	for _, rq := range requests {
+		stream.Send(rq)
+		time.Sleep(100 * time.Millisecond)
+	}
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("Error while receiving ComputeAverage RPC: %v", err)
+	}
+
+	log.Printf("Response from ComputeAverage: %v", res.Average)
 }
 
 func doStream(c calculatorpb.CalculatorServiceClient) {

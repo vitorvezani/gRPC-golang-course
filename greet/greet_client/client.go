@@ -67,7 +67,7 @@ func doClientStream(c greetpb.GreetServiceClient) {
 		log.Fatalf("Error while receiving LongGreetResponse RPC: %v", err)
 	}
 
-	log.Printf("Response from greetManyTimes: %v", res.Result)
+	log.Printf("Response from LongGreet: %v", res.Result)
 }
 
 func doServerStream(c greetpb.GreetServiceClient) {
@@ -96,7 +96,7 @@ func doServerStream(c greetpb.GreetServiceClient) {
 			log.Fatalf("Error while reading stream: %v", err)
 		}
 
-		log.Printf("Response from greetManyTimes: %v", msg.Result)
+		log.Printf("Response from GreetManyTimes: %v", msg.Result)
 	}
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
 
@@ -13,6 +14,29 @@ import (
 
 type server struct {
 	calculatorpb.UnimplementedCalculatorServiceServer
+}
+
+func (*server) ComputeAverage(stream calculatorpb.CalculatorService_ComputeAverageServer) error {
+	fmt.Println("ComputeAverage invoked with greeting")
+	var sum = int32(0)
+	var count = 0
+	for {
+		msg, err := stream.Recv()
+		if err == io.EOF {
+			var average = float64(sum) / float64(count)
+			stream.SendAndClose(&calculatorpb.ComputeAverageResponse{
+				Average: average,
+			})
+			break
+		}
+		if err != nil {
+			log.Fatalf("Erro while reading client stream: %v", err)
+		}
+
+		sum += msg.GetNumber()
+		count++
+	}
+	return nil
 }
 
 func (*server) Sum(ctx context.Context, rq *calculatorpb.SumRequest) (*calculatorpb.SumResponse, error) {
