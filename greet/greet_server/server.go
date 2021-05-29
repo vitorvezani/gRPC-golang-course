@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strconv"
@@ -15,6 +16,27 @@ import (
 
 type server struct {
 	greetpb.UnimplementedGreetServiceServer
+}
+
+func (*server) LongGreet(stream greetpb.GreetService_LongGreetServer) error {
+	fmt.Println("LongGreet invoked with greeting")
+	var result = ""
+	for {
+		msg, err := stream.Recv()
+		if err == io.EOF {
+			stream.SendAndClose(&greetpb.LongGreetResponse{
+				Result: result,
+			})
+			break
+		}
+		if err != nil {
+			log.Fatalf("Erro while reading client stream: %v", err)
+		}
+
+		var firstName = msg.GetGreeting().GetFirstName()
+		result += firstName + "! "
+	}
+	return nil
 }
 
 func (*server) Greet(ctx context.Context, rq *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
