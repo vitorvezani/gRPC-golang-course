@@ -18,8 +18,34 @@ type server struct {
 	greetpb.UnimplementedGreetServiceServer
 }
 
+func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) error {
+	fmt.Println("GreetEveryone invoked")
+	for {
+		msg, err := stream.Recv()
+		if err == io.EOF {
+			log.Println("Finished receiving from client")
+			return nil
+		}
+		if err != nil {
+			log.Fatalf("Erro while reading client stream: %v", err)
+			return err
+		}
+
+		firstName := msg.GetGreeting().GetFirstName()
+		fmt.Printf("Msg received: %v\n", firstName)
+		result := "Hello " + firstName + "! "
+		sendErr := stream.Send(&greetpb.GreetEveryoneResponse{
+			Result: result,
+		})
+		if sendErr != nil {
+			log.Fatalf("Erro while sending data to client: %v\n", err)
+			return sendErr
+		}
+	}
+}
+
 func (*server) LongGreet(stream greetpb.GreetService_LongGreetServer) error {
-	fmt.Println("LongGreet invoked with greeting")
+	fmt.Println("LongGreet invoked")
 	var result = ""
 	for {
 		msg, err := stream.Recv()
@@ -31,6 +57,7 @@ func (*server) LongGreet(stream greetpb.GreetService_LongGreetServer) error {
 		}
 		if err != nil {
 			log.Fatalf("Erro while reading client stream: %v", err)
+			return err
 		}
 
 		var firstName = msg.GetGreeting().GetFirstName()
