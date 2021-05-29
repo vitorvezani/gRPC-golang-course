@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -10,7 +11,23 @@ import (
 	"google.golang.org/grpc"
 )
 
-type server struct{}
+type server struct {
+	greetpb.UnimplementedGreetServiceServer
+}
+
+func (*server) Greet(ctx context.Context, rq *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
+	fmt.Printf("Greet invoked with greeting: %v", rq)
+	firstName := rq.GetGreeting().GetFirstName()
+	lastName := rq.GetGreeting().GetLastName()
+
+	result := "Hello " + firstName + " " + lastName
+
+	res := &greetpb.GreetResponse{
+		Result: result,
+	}
+
+	return res, nil
+}
 
 func main() {
 	fmt.Println("Hello World")
