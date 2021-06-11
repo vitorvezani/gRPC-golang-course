@@ -34,8 +34,9 @@ type blogItem struct {
 }
 
 func (*server) ReadBlog(ctx context.Context, req *blogpb.ReadBlogRequest) (*blogpb.ReadBlogResponse, error) {
+	fmt.Println("Read blog request hit...")
 	blogId := req.GetBlogId()
-	oid, err := primitive.ParseDecimal128(blogId)
+	oid, err := primitive.ObjectIDFromHex(blogId)
 	if err != nil {
 		return nil, status.Errorf(
 			codes.InvalidArgument,
